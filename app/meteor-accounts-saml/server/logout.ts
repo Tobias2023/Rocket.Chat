@@ -1,28 +1,8 @@
 import { Meteor } from 'meteor/meteor';
 
-import { Users } from '../../../models/server';
-import { SAMLServiceProvider } from '../lib/ServiceProvider';
-import { SAMLUtils } from '../lib/Utils';
-import { IServiceProviderOptions } from '../definition/IServiceProviderOptions';
-
-/**
- * Fetch SAML provider configs for given 'provider'.
- */
-function getSamlServiceProviderOptions(provider: string): IServiceProviderOptions {
-	if (!provider) {
-		throw new Meteor.Error('no-saml-provider', 'SAML internal error', {
-			method: 'getSamlServiceProviderOptions',
-		});
-	}
-
-	const providers = SAMLUtils.serviceProviders;
-
-	const samlProvider = function(element: IServiceProviderOptions): boolean {
-		return element.provider === provider;
-	};
-
-	return providers.filter(samlProvider)[0];
-}
+import { Users } from '../../models/server';
+import { SAMLServiceProvider } from './lib/ServiceProvider';
+import { SAMLUtils } from './lib/Utils';
 
 Meteor.methods({
 	samlLogout(provider: string) {
@@ -30,7 +10,13 @@ Meteor.methods({
 		if (!Meteor.userId()) {
 			throw new Meteor.Error('error-invalid-user', 'Invalid user', { method: 'samlLogout' });
 		}
-		const providerConfig = getSamlServiceProviderOptions(provider);
+		if (!provider) {
+			throw new Meteor.Error('no-saml-provider', 'SAML internal error', {
+				method: 'getSamlServiceProviderOptions',
+			});
+		}
+
+		const providerConfig = SAMLUtils.getSamlServiceProviderOptions(provider);
 
 		SAMLUtils.log(`Logout request from ${ JSON.stringify(providerConfig) }`);
 		// This query should respect upcoming array of SAML logins

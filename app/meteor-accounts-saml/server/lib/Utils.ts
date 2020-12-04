@@ -496,4 +496,8 @@ export class SAMLUtils {
 
 		return userObject;
 	}
+
+	public static getSamlServiceProviderOptions(provider: string): IServiceProviderOptions {
+		return providerList.filter((element: IServiceProviderOptions) => element.provider === provider)[0];
+	}
 }
